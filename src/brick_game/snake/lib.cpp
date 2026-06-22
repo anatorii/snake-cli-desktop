@@ -34,9 +34,6 @@ void userInput(UserAction_t action, bool hold) {
         case Terminate:
             // std::cout << "Terminate" << std::endl;
             break;
-        default:
-            // printf("default; action:%d\n", action);
-            break;
     }
 }
 

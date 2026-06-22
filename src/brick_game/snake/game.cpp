@@ -86,7 +86,7 @@ void Game::initGame() {
     snake.push_back(Cell{5, 16});
     snake.push_back(Cell{5, 17});
     snake.push_back(Cell{5, 18});
-    putApple();
+    putApple(5, 14);
 }
 
 void Game::finishGame() {}
@@ -146,31 +146,6 @@ void Game::speedUpSnake() {
     if (snakeSpeed < 10) snakeSpeed++;
 }
 
-void Game::eatApple() {
-    if (snakeLength < 200) {
-        snakeLength++;
-
-        Cell head = snake[0];
-        if (direction == Up_Direction) {
-            head.y--;
-        } else if (direction == Down_Direction) {
-            head.y++;
-        } else if (direction == Left_Direction) {
-            head.x--;
-        } else {
-            head.x++;
-        }
-
-        std::vector<Cell> tmp;
-        tmp.push_back(head);
-        for (size_t i = 0; i < snake.size(); i++) {
-            tmp.push_back(snake[i]);
-        }
-
-        snake = tmp;
-    }
-}
-
 void Game::addTail() {
     int i = snake.size() - 1;
     int dx = snake[i].x - snake[i - 1].x;
@@ -178,7 +153,12 @@ void Game::addTail() {
     snake.push_back(Cell{snake[i].x + dx, snake[i].y + dy});
 }
 
-void Game::putApple() {
+void Game::putApple(int x, int y) {
+    if (x != -1 && y != -1) {
+        apple = Cell{x, y};
+        return;
+    }
+
     std::set<Cell> field;
     for (int y = 0; y < 20; y++) {
         for (int x = 0; x < 10; x++) {
@@ -196,20 +176,6 @@ void Game::putApple() {
     std::mt19937 gen(seed);
     std::uniform_int_distribution<> dist(0, cells.size() - 1);
     apple = cells[dist(gen)];
-}
-
-bool Game::nextApple() {
-    Cell head = snake[0];
-    if (direction == Up_Direction) {
-        head.y--;
-    } else if (direction == Down_Direction) {
-        head.y++;
-    } else if (direction == Left_Direction) {
-        head.x--;
-    } else {
-        head.x++;
-    }
-    return head.x == apple.x && head.y == apple.y;
 }
 
 bool Game::checkApple() {
@@ -248,14 +214,6 @@ bool Game::nextSelf() {
         }
     }
     return false;
-}
-
-void Game::printApple() { std::cout << "apple:" << apple.x << ':' << apple.y << std::endl; }
-
-void Game::printSnake() {
-    for (size_t i = 0; i < snake.size(); i++) {
-        std::cout << snake[i].x << ':' << snake[i].y << std::endl;
-    }
 }
 
 void Game::cleanField() {

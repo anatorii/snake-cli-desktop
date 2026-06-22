@@ -12,10 +12,12 @@ DISTDIR = ../dist
 DOCDIR = ../docs
 
 LDFLAGS = -lncurses -lm
-SNAKE_LDFLAGS = -lncurses -lm -lstdc++
 TEST_LIBS = -lcheck -lm -lpthread -lsubunit
+SNAKE_LDFLAGS = -lm -lncurses
+SNAKE_TEST_LIBS = -lgtest -lpthread
 SANITIZE = -fsanitize=address
-GCOV_FLAGS = -fprofile-arcs -ftest-coverage
+GCOV_FLAGS = -fprofile-arcs -ftest-coverage -O0 -std=c++20 -fPIC
+
 
 # Имена библиотек и исполняемых файлов
 TETRIS_LIB = libtetris.so
@@ -27,11 +29,13 @@ SNAKE_BIN = snake
 TETRIS_SRC = $(wildcard $(SRCDIR)/brick_game/tetris/*.c)
 SNAKE_SRC = $(wildcard $(SRCDIR)/brick_game/snake/*.cpp)
 GUI_SRC = $(wildcard $(SRCDIR)/gui/cli/*.c)
+TEST_SRC = $(wildcard $(SRCDIR)/tests_snake/*.cpp)
 
 # Объектные файлы
 TETRIS_OBJ = $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(TETRIS_SRC))
 SNAKE_OBJ = $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SNAKE_SRC))
 GUI_OBJ = $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(GUI_SRC))
+TEST_OBJ = $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(TEST_SRC))
 
 # Заголовочные файлы (для зависимостей)
 TETRIS_HEAD = $(wildcard $(SRCDIR)/brick_game/tetris/*.h)
@@ -43,7 +47,7 @@ all: directories $(TETRIS_BIN) $(SNAKE_BIN)
 
 # Создание необходимых директорий
 directories:
-	@mkdir -p $(BINDIR) $(OBJDIR)/brick_game/tetris $(OBJDIR)/brick_game/snake $(OBJDIR)/gui/cli
+	@mkdir -p $(BINDIR) $(OBJDIR)/brick_game/tetris $(OBJDIR)/brick_game/snake $(OBJDIR)/gui/cli $(OBJDIR)/tests_snake
 
 # Очистка
 clean:
@@ -77,6 +81,10 @@ $(OBJDIR)/brick_game/snake/%.o: $(SRCDIR)/brick_game/snake/%.cpp $(SNAKE_HEAD) |
 $(OBJDIR)/gui/cli/%.o: $(SRCDIR)/gui/cli/%.c $(GUI_HEAD) | directories
 	$(CC) $(CFLAGS) -c $< -o $@
 
+# Объектные файлы тестов
+$(OBJDIR)/tests_snake/%.o: $(SRCDIR)/tests_snake/%.cpp | directories
+	$(CCP) $(CPPFLAGS) -c $< -o $@
+
 # =============== ИСПОЛНЯЕМЫЕ ФАЙЛЫ ===============
 
 # Исполняемый файл Tetris
@@ -86,6 +94,20 @@ $(TETRIS_BIN): $(GUI_OBJ) $(TETRIS_LIB)
 # Исполняемый файл Snake
 $(SNAKE_BIN): $(GUI_OBJ) $(SNAKE_LIB)
 	$(CC) $(CFLAGS) -o $(BINDIR)/$@ $(GUI_OBJ) -L$(BINDIR) -l:$(SNAKE_LIB) $(SNAKE_LDFLAGS) -Wl,-rpath,'$$ORIGIN'
+
+# =============== ТЕСТЫ ===============
+
+test: $(SNAKE_LIB)
+	$(CCP) $(CPPFLAGS) $(TEST_SRC) gui/cli/utils.c -o $(BINDIR)/snake_test $(SNAKE_TEST_LIBS) $(SNAKE_LDFLAGS) -L$(BINDIR) -l:$(SNAKE_LIB) -Wl,-rpath,'$$ORIGIN'
+	$(BINDIR)/snake_test
+
+gcov_report:
+	$(CCP) $(GCOV_FLAGS) $(TEST_SRC) $(SNAKE_SRC) gui/cli/utils.c -o $(BINDIR)/gcov_report $(SNAKE_TEST_LIBS) $(SNAKE_LDFLAGS)
+	$(BINDIR)/gcov_report
+	lcov --ignore-errors mismatch,unsupported,inconsistent,format,empty --rc geninfo_unexecuted_blocks=1 -c -d $(BINDIR) -o $(BINDIR)/coverage.info
+	lcov -r $(BINDIR)/coverage.info 'gui' '/usr*' '**/tests_snake/*' -o $(BINDIR)/coverage.info
+	genhtml --ignore-errors category -o $(BINDIR)/report $(BINDIR)/coverage.info
+	xdg-open $(BINDIR)/report/index.html
 
 # =============== ЗАПУСК ===============
 

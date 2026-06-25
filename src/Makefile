@@ -17,6 +17,7 @@ SNAKE_LDFLAGS = -lm -lncurses
 SNAKE_TEST_LIBS = -lgtest -lpthread
 SANITIZE = -fsanitize=address
 GCOV_FLAGS = -fprofile-arcs -ftest-coverage -O0 -std=c++20 -fPIC
+GTKFLAGS = `pkg-config --cflags --libs gtk4`
 
 
 # Имена библиотек и исполняемых файлов
@@ -24,30 +25,35 @@ TETRIS_LIB = libtetris.so
 SNAKE_LIB = libsnake.so
 TETRIS_BIN = tetris
 SNAKE_BIN = snake
+TETRIS_DESKTOP = tetris_desktop
+SNAKE_DESKTOP = snake_desktop
 
 # Исходники
 TETRIS_SRC = $(wildcard $(SRCDIR)/brick_game/tetris/*.c)
 SNAKE_SRC = $(wildcard $(SRCDIR)/brick_game/snake/*.cpp)
 GUI_SRC = $(wildcard $(SRCDIR)/gui/cli/*.c)
+DESKTOP_SRC = $(wildcard $(SRCDIR)/gui/desktop/*.cpp)
 TEST_SRC = $(wildcard $(SRCDIR)/tests_snake/*.cpp)
 
 # Объектные файлы
 TETRIS_OBJ = $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(TETRIS_SRC))
 SNAKE_OBJ = $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SNAKE_SRC))
 GUI_OBJ = $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(GUI_SRC))
+DESKTOP_OBJ = $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(DESKTOP_SRC))
 TEST_OBJ = $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(TEST_SRC))
 
 # Заголовочные файлы (для зависимостей)
 TETRIS_HEAD = $(wildcard $(SRCDIR)/brick_game/tetris/*.h)
 SNAKE_HEAD = $(wildcard $(SRCDIR)/brick_game/snake/*.hpp)
 GUI_HEAD = $(wildcard $(SRCDIR)/gui/cli/*.h)
+DESKTOP_HEAD = $(wildcard $(SRCDIR)/gui/desktop/*.h)
 
 # Основные цели
 all: directories $(TETRIS_BIN) $(SNAKE_BIN)
 
 # Создание необходимых директорий
 directories:
-	@mkdir -p $(BINDIR) $(OBJDIR)/brick_game/tetris $(OBJDIR)/brick_game/snake $(OBJDIR)/gui/cli $(OBJDIR)/tests_snake
+	@mkdir -p $(BINDIR) $(OBJDIR)/brick_game/tetris $(OBJDIR)/brick_game/snake $(OBJDIR)/gui/cli $(OBJDIR)/gui/desktop $(OBJDIR)/tests_snake
 
 # Очистка
 clean:
@@ -81,7 +87,11 @@ $(OBJDIR)/brick_game/snake/%.o: $(SRCDIR)/brick_game/snake/%.cpp $(SNAKE_HEAD) |
 $(OBJDIR)/gui/cli/%.o: $(SRCDIR)/gui/cli/%.c $(GUI_HEAD) | directories
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Объектные файлы тестов
+# Объектные файлы Desktop (общие)
+$(OBJDIR)/gui/desktop/%.o: $(SRCDIR)/gui/desktop/%.cpp $(DESKTOP_HEAD) | directories
+	$(CCP) $(CPPFLAGS) -c $< -o $@ $(GTKFLAGS)
+
+# Объектные файлы тестов Snake
 $(OBJDIR)/tests_snake/%.o: $(SRCDIR)/tests_snake/%.cpp | directories
 	$(CCP) $(CPPFLAGS) -c $< -o $@
 
@@ -94,6 +104,18 @@ $(TETRIS_BIN): $(GUI_OBJ) $(TETRIS_LIB)
 # Исполняемый файл Snake
 $(SNAKE_BIN): $(GUI_OBJ) $(SNAKE_LIB)
 	$(CC) $(CFLAGS) -o $(BINDIR)/$@ $(GUI_OBJ) -L$(BINDIR) -l:$(SNAKE_LIB) $(SNAKE_LDFLAGS) -Wl,-rpath,'$$ORIGIN'
+
+# Исполняемый файл Tetris desktop
+$(TETRIS_DESKTOP): $(DESKTOP_OBJ) $(TETRIS_LIB)
+	$(CCP) $(CPPFLAGS) -o $(BINDIR)/$@ $(DESKTOP_OBJ) -L$(BINDIR) -l:$(TETRIS_LIB) $(GTKFLAGS)-lm -Wl,-rpath,'$$ORIGIN'
+
+# Исполняемый файл Snake desktop
+$(SNAKE_DESKTOP): $(DESKTOP_OBJ) $(SNAKE_LIB)
+	$(CCP) $(CPPFLAGS) -o $(BINDIR)/$@ $(DESKTOP_OBJ) -L$(BINDIR) -l:$(SNAKE_LIB) $(GTKFLAGS)-lm -Wl,-rpath,'$$ORIGIN'
+
+gui:
+	$(CCP) $(CPPFLAGS) ./gui/desktop/desktop.cpp -o ./gui/desktop/desktop.app $(GTKFLAGS) -lm
+	./gui/desktop/desktop.app
 
 # =============== ТЕСТЫ ===============
 
@@ -117,6 +139,12 @@ run-tetris: $(TETRIS_BIN)
 run-snake: clean $(SNAKE_BIN)
 	cd $(BINDIR) && ./$(SNAKE_BIN)
 
+run-tetris-desktop: clean $(TETRIS_DESKTOP)
+	cd $(BINDIR) && ./$(TETRIS_DESKTOP)
+
+run-snake-desktop: clean $(SNAKE_DESKTOP)
+	cd $(BINDIR) && ./$(SNAKE_DESKTOP)
+
 # =============== ДЕБАГ ===============
 
 debug: CFLAGS += -g -O0
@@ -133,4 +161,4 @@ targets:
 	@echo "GUI_SRC = $(GUI_SRC)"
 	@echo "GUI_OBJ = $(GUI_OBJ)"
 
-.PHONY: all clean cf directories docs dist run-tetris run-snake debug test
+.PHONY: all clean cf directories docs dist run-tetris run-snake debug test gui

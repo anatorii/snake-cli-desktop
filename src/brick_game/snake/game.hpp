@@ -30,6 +30,7 @@ class Game {
     void rotate(int dir);
     void speedUp();
     void setSpeed(int speed);
+    void updatePause();
     void countScore();
 
    private:
@@ -56,15 +57,11 @@ class Game {
     void moveSnake();
     void rotateSnake(int dir);
     void speedUpSnake();
-    // void eatApple();
     void addTail();
     void putApple(int x = -1, int y = -1);
-    // bool nextApple();
     bool checkApple();
     bool nextWall();
     bool nextSelf();
-    // void printApple();
-    // void printSnake();
     void cleanField();
     void checkTime();
 };

@@ -29,7 +29,7 @@ void userInput(UserAction_t action, bool hold) {
             game->speedUp();
             break;
         case Pause:
-            // std::cout << "Pause" << std::endl;
+            game->updatePause();
             break;
         case Terminate:
             // std::cout << "Terminate" << std::endl;

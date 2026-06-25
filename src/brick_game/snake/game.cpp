@@ -37,11 +37,13 @@ Game* Game::getInstance() {
 }
 
 GameInfo_t Game::update() {
-    checkTime();
+    if (pause == 0) {
+        checkTime();
+    }
 
     cleanField();
     field[apple.y][apple.x] = 6;
-    field[snake[0].y][snake[0].x] = 1;
+    field[snake[0].y][snake[0].x] = 7;
     for (size_t i = 1; i < snake.size(); i++) {
         field[snake[i].y][snake[i].x] = 4;
     }
@@ -68,6 +70,14 @@ void Game::rotate(int dir) {
 void Game::speedUp() { fsm->speedUp(); }
 
 void Game::setSpeed(int speed) { snakeSpeed = speed; }
+
+void Game::updatePause() {
+    if (this->pause != 0) {
+        this->pause = 0;
+    } else {
+        this->pause = 1;
+    }
+}
 
 void Game::checkTime() {
     // 100ms - 10 speed

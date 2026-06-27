@@ -9,7 +9,7 @@
 #include "defines.hpp"
 #include "state_machine.hpp"
 
-Game::Game() : fsm(std::make_unique<SnakeGameFsm>(this)) {
+s21::Game::Game() : fsm(std::make_unique<s21::SnakeGameFsm>(this)) {
     initGame();
 
     int** field = new int*[HEIGHT];
@@ -22,7 +22,7 @@ Game::Game() : fsm(std::make_unique<SnakeGameFsm>(this)) {
     this->field = field;
 }
 
-Game::~Game() {
+s21::Game::~Game() {
     if (field) {
         for (int i = 0; i < HEIGHT; i++) {
             delete[] field[i];
@@ -31,12 +31,12 @@ Game::~Game() {
     }
 }
 
-Game* Game::getInstance() {
-    static Game instance;
+s21::Game* s21::Game::getInstance() {
+    static s21::Game instance;
     return &instance;
 }
 
-GameInfo_t Game::update() {
+GameInfo_t s21::Game::update() {
     if (pause == 0) {
         checkTime();
     }
@@ -60,18 +60,18 @@ GameInfo_t Game::update() {
     return info;
 }
 
-void Game::start() { fsm->start(); }
+void s21::Game::start() { fsm->start(); }
 
-void Game::rotate(int dir) {
-    RotateData* pData = new RotateData(dir);
+void s21::Game::rotate(int dir) {
+    s21::RotateData* pData = new s21::RotateData(dir);
     fsm->rotate(pData);
 }
 
-void Game::speedUp() { fsm->speedUp(); }
+void s21::Game::speedUp() { fsm->speedUp(); }
 
-void Game::setSpeed(int speed) { snakeSpeed = speed; }
+void s21::Game::setSpeed(int speed) { snakeSpeed = speed; }
 
-void Game::updatePause() {
+void s21::Game::updatePause() {
     if (this->pause != 0) {
         this->pause = 0;
     } else {
@@ -79,7 +79,7 @@ void Game::updatePause() {
     }
 }
 
-void Game::checkTime() {
+void s21::Game::checkTime() {
     // 100ms - 10 speed
     // 1000ms - 1 speed
     ticks++;
@@ -90,19 +90,21 @@ void Game::checkTime() {
     }
 }
 
-void Game::initGame() {
+bool s21::Game::maxLength() { return snake.size() == MAX_LENGTH; }
+
+void s21::Game::initGame() {
     ticks = 0;
-    snake.push_back(Cell{5, 15});
-    snake.push_back(Cell{5, 16});
-    snake.push_back(Cell{5, 17});
-    snake.push_back(Cell{5, 18});
+    snake.push_back(s21::Cell{5, 15});
+    snake.push_back(s21::Cell{5, 16});
+    snake.push_back(s21::Cell{5, 17});
+    snake.push_back(s21::Cell{5, 18});
     putApple(5, 14);
 }
 
-void Game::finishGame() {}
+void s21::Game::finishGame() {}
 
-void Game::moveSnake() {
-    Cell head;
+void s21::Game::moveSnake() {
+    s21::Cell head;
 
     for (size_t i = 0; i < snake.size(); i++) {
         if (i == 0) {
@@ -117,14 +119,14 @@ void Game::moveSnake() {
                 snake[0].x++;
             }
         } else {
-            Cell tmp = snake[i];
+            s21::Cell tmp = snake[i];
             snake[i] = head;
             head = tmp;
         }
     }
 }
 
-void Game::rotateSnake(int dir) {
+void s21::Game::rotateSnake(int dir) {
     int rotation = 0;
     if (direction == Up_Direction) {
         if (dir == Left_Direction)
@@ -152,27 +154,27 @@ void Game::rotateSnake(int dir) {
     if (direction > 3) direction = 0;
 }
 
-void Game::speedUpSnake() {
+void s21::Game::speedUpSnake() {
     if (snakeSpeed < 10) snakeSpeed++;
 }
 
-void Game::addTail() {
+void s21::Game::addTail() {
     int i = snake.size() - 1;
     int dx = snake[i].x - snake[i - 1].x;
     int dy = snake[i].y - snake[i - 1].y;
-    snake.push_back(Cell{snake[i].x + dx, snake[i].y + dy});
+    snake.push_back(s21::Cell{snake[i].x + dx, snake[i].y + dy});
 }
 
-void Game::putApple(int x, int y) {
+void s21::Game::putApple(int x, int y) {
     if (x != -1 && y != -1) {
-        apple = Cell{x, y};
+        apple = s21::Cell{x, y};
         return;
     }
 
-    std::set<Cell> field;
+    std::set<s21::Cell> field;
     for (int y = 0; y < 20; y++) {
         for (int x = 0; x < 10; x++) {
-            field.insert(Cell{x, y});
+            field.insert(s21::Cell{x, y});
         }
     }
 
@@ -180,7 +182,7 @@ void Game::putApple(int x, int y) {
         field.erase(snake[i]);
     }
 
-    std::vector<Cell> cells(field.begin(), field.end());
+    std::vector<s21::Cell> cells(field.begin(), field.end());
 
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::mt19937 gen(seed);
@@ -188,13 +190,13 @@ void Game::putApple(int x, int y) {
     apple = cells[dist(gen)];
 }
 
-bool Game::checkApple() {
-    Cell head = snake[0];
+bool s21::Game::checkApple() {
+    s21::Cell head = snake[0];
     return head.x == apple.x && head.y == apple.y;
 }
 
-bool Game::nextWall() {
-    Cell head = snake[0];
+bool s21::Game::nextWall() {
+    s21::Cell head = snake[0];
     if (direction == Up_Direction) {
         head.y--;
     } else if (direction == Down_Direction) {
@@ -207,8 +209,8 @@ bool Game::nextWall() {
     return head.x < 0 || head.x >= 10 || head.y < 0 || head.y >= 20;
 }
 
-bool Game::nextSelf() {
-    Cell head = snake[0];
+bool s21::Game::nextSelf() {
+    s21::Cell head = snake[0];
     if (direction == Up_Direction) {
         head.y--;
     } else if (direction == Down_Direction) {
@@ -226,7 +228,7 @@ bool Game::nextSelf() {
     return false;
 }
 
-void Game::cleanField() {
+void s21::Game::cleanField() {
     for (int i = 0; i < HEIGHT; i++) {
         for (int j = 0; j < WIDTH; j++) {
             field[i][j] = 0;
@@ -234,7 +236,7 @@ void Game::cleanField() {
     }
 }
 
-void Game::countScore() {
+void s21::Game::countScore() {
     score++;
 
     int calcLevel = score / LEVEL_SCORE + 1;

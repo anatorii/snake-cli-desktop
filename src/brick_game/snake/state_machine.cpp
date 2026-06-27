@@ -1,5 +1,7 @@
 #include "state_machine.hpp"
 
+using namespace s21;
+
 StateMachine::StateMachine() : currentState(0), newState(0), eventGenerated(false), pEventData(nullptr) {}
 
 StateMachine::~StateMachine() {}

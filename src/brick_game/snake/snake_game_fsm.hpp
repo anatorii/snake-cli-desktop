@@ -8,24 +8,26 @@
 #include "game.hpp"
 #include "state_machine.hpp"
 
+namespace s21 {
+
 class Game;
 
 class SnakeEventData : public EventData {
    public:
-    SnakeEventData(int k) : key(k){};
+    SnakeEventData(int k) : key(k) {};
     int key;
 };
 
 class RotateData : public EventData {
    public:
-    RotateData(int d) : direction(d){};
+    RotateData(int d) : direction(d) {};
     int direction;
 };
 
 class SnakeGameFsm : public StateMachine {
    public:
     SnakeGameFsm(Game* g);
-    // события вызываемые снаружи
+    // externally triggered events
     void timer();
     void start();
     void rotate(RotateData* data);
@@ -72,7 +74,7 @@ class SnakeGameFsm : public StateMachine {
          {{Event_Ignore, Event_Ignore, State_Action, Event_Ignore, Event_Ignore, Event_Ignore, Event_Ignore,
            Event_Ignore, Event_Ignore, Event_Ignore}}}};
 
-    // функци состояния
+    // state functions
     void StartAction(SnakeEventData* data);
     void FinishAction(SnakeEventData* data);
     void MoveAction(SnakeEventData* data);
@@ -84,8 +86,10 @@ class SnakeGameFsm : public StateMachine {
     void WallAction(SnakeEventData* data);
     void SelfAction(SnakeEventData* data);
 
-    // инициализация состояний
+    // initialization of states
     void initStateMap();
 };
+
+}  // namespace s21
 
 #endif

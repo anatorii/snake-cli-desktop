@@ -2,6 +2,7 @@
 
 #include <gtk/gtk.h>
 #include <string.h>
+
 #include "brick_game.h"
 #include "defines.h"
 

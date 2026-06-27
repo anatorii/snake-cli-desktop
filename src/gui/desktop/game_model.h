@@ -1,42 +1,43 @@
 #pragma once
 
 #include <iostream>
+
 #include "brick_game.h"
 #include "defines.h"
 #include "utils.h"
 
 class GameModel {
-private:
+   private:
     GameInfo_t game_info;
     int** field;
     int key;
-    
-public:
+
+   public:
     GameModel() : field(nullptr), key(-1) {
-        // Инициализация начального состояния
+        // Initialization of the initial state
         game_info = updateCurrentState();
         field = game_info.field;
     }
-    
+
     ~GameModel() {
-        // Освобождение ресурсов если необходимо
+        // Freeing up resources if necessary
     }
-    
-    // Геттеры для данных
+
+    // Getters for data
     GameInfo_t getGameInfo() const { return game_info; }
     int** getField() const { return field; }
     int getKey() const { return key; }
-    
-    // Сеттеры
+
+    // Setters
     void setKey(int newKey) { key = newKey; }
-    
-    // Обновление состояния игры
+
+    // Game state update
     void updateState() {
         game_info = updateCurrentState();
         field = game_info.field;
     }
-    
-    // Обработка пользовательского ввода
+
+    // Handling user input
     void processInput() {
         int action = input_to_action(key);
         if ((action > -1 && !isPaused()) || (action == Pause)) {
@@ -44,8 +45,8 @@ public:
         }
         key = -1;
     }
-    
-    // Проверка состояния игры
+
+    // Checking the game state
     bool isPaused() const { return game_info.pause == 1; }
     bool isGameOver() const { return game_info.speed == 0; }
 };

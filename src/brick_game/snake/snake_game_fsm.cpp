@@ -10,7 +10,7 @@
 // конструктор SnakeGameFsm
 // ////////////////////////////////////////////////////
 
-SnakeGameFsm::SnakeGameFsm(Game* g) : game(g) {
+s21::SnakeGameFsm::SnakeGameFsm(Game* g) : game(g) {
     initStateMap();
     currentState = State_Start;
 }
@@ -19,42 +19,25 @@ SnakeGameFsm::SnakeGameFsm(Game* g) : game(g) {
 // определение событий
 // ////////////////////////////////////////////////////
 
-void SnakeGameFsm::timer() {
-    // std::cout << "SnakeGameFsm::timer" << std::endl;
-    externalEvent(transitions[Event_Timer][getCurrentState()], nullptr);
-}
+void s21::SnakeGameFsm::timer() { externalEvent(transitions[Event_Timer][getCurrentState()], nullptr); }
 
-void SnakeGameFsm::start() {
-    // std::cout << "SnakeGameFsm::start" << std::endl;
-    externalEvent(transitions[Event_Start][getCurrentState()], nullptr);
-}
+void s21::SnakeGameFsm::start() { externalEvent(transitions[Event_Start][getCurrentState()], nullptr); }
 
-void SnakeGameFsm::rotate(RotateData* data) {
-    // std::cout << "SnakeGameFsm::rotate" << std::endl;
+void s21::SnakeGameFsm::rotate(RotateData* data) {
     externalEvent(transitions[Event_Rotate][getCurrentState()], data);
 }
 
-void SnakeGameFsm::speedUp() {
-    // std::cout << "SnakeGameFsm::speedUp" << std::endl;
-    externalEvent(transitions[Event_SpeedUp][getCurrentState()], nullptr);
-}
+void s21::SnakeGameFsm::speedUp() { externalEvent(transitions[Event_SpeedUp][getCurrentState()], nullptr); }
 
 // ////////////////////////////////////////////////////
 // определение функций состояния
 // ////////////////////////////////////////////////////
 
-void SnakeGameFsm::StartAction(SnakeEventData* data) {
-    // std::cout << "Action start" << std::endl;
-    game->initGame();
-}
+void s21::SnakeGameFsm::StartAction(SnakeEventData* data) { game->initGame(); }
 
-void SnakeGameFsm::FinishAction(SnakeEventData* data) {
-    // std::cout << "Action finish" << std::endl;
-    game->finishGame();
-}
+void s21::SnakeGameFsm::FinishAction(SnakeEventData* data) { game->finishGame(); }
 
-void SnakeGameFsm::MoveAction(SnakeEventData* data) {
-    // std::cout << "Action move" << std::endl;
+void s21::SnakeGameFsm::MoveAction(SnakeEventData* data) {
     if (game->nextSelf()) {
         internalEvent(State_Self);
     } else if (game->nextWall()) {
@@ -67,49 +50,39 @@ void SnakeGameFsm::MoveAction(SnakeEventData* data) {
     }
 }
 
-void SnakeGameFsm::WinAction(SnakeEventData* data) {
-    // std::cout << "Action win" << std::endl;
+void s21::SnakeGameFsm::WinAction(SnakeEventData* data) {
+    game->setSpeed(-1);
     internalEvent(State_Finish);
 }
 
-void SnakeGameFsm::FailAction(SnakeEventData* data) {
-    // std::cout << "Action fail" << std::endl;
+void s21::SnakeGameFsm::FailAction(SnakeEventData* data) {
     game->setSpeed(0);
     internalEvent(State_Finish);
 }
 
-void SnakeGameFsm::RotateAction(RotateData* data) {
-    // std::cout << "Action rotate" << std::endl;
-    game->rotateSnake(data->direction);
-}
+void s21::SnakeGameFsm::RotateAction(RotateData* data) { game->rotateSnake(data->direction); }
 
-void SnakeGameFsm::ActionAction(SnakeEventData* data) {
-    // std::cout << "Action action" << std::endl;
-    game->speedUpSnake();
-}
+void s21::SnakeGameFsm::ActionAction(SnakeEventData* data) { game->speedUpSnake(); }
 
-void SnakeGameFsm::AppleAction(SnakeEventData* data) {
-    // std::cout << "Action apple" << std::endl;
+void s21::SnakeGameFsm::AppleAction(SnakeEventData* data) {
     game->countScore();
     game->addTail();
-    game->putApple();
+    if (!game->maxLength()) {
+        game->putApple();
+    } else {
+        internalEvent(State_Win);
+    }
 }
 
-void SnakeGameFsm::WallAction(SnakeEventData* data) {
-    // std::cout << "Action wall" << std::endl;
-    internalEvent(State_Fail);
-}
+void s21::SnakeGameFsm::WallAction(SnakeEventData* data) { internalEvent(State_Fail); }
 
-void SnakeGameFsm::SelfAction(SnakeEventData* data) {
-    // std::cout << "Action self" << std::endl;
-    internalEvent(State_Fail);
-}
+void s21::SnakeGameFsm::SelfAction(SnakeEventData* data) { internalEvent(State_Fail); }
 
 // ////////////////////////////////////////////////////
 // инициализация состояний
 // ////////////////////////////////////////////////////
 
-void SnakeGameFsm::initStateMap() {
+void s21::SnakeGameFsm::initStateMap() {
     stateMap[State_Start] = createState([this](EventData* e) { this->StartAction((SnakeEventData*)e); },
                                         nullptr, nullptr, nullptr);
     stateMap[State_Finish] = createState([this](EventData* e) { this->FinishAction((SnakeEventData*)e); },

@@ -8,7 +8,7 @@ extern "C" {
 
 void userInput(UserAction_t action, bool hold) {
     (void)hold;
-    Game *game = Game::getInstance();
+    s21::Game *game = s21::Game::getInstance();
     switch (action) {
         case Start:
             game->start();
@@ -38,7 +38,7 @@ void userInput(UserAction_t action, bool hold) {
 }
 
 GameInfo_t updateCurrentState() {
-    Game *game = Game::getInstance();
+    s21::Game *game = s21::Game::getInstance();
     GameInfo_t info = game->update();
     return info;
 }

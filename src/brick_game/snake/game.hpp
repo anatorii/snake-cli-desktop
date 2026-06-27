@@ -10,6 +10,8 @@
 #include "lib.hpp"
 #include "snake_game_fsm.hpp"
 
+namespace s21 {
+
 class SnakeGameFsm;
 
 struct Cell {
@@ -64,6 +66,9 @@ class Game {
     bool nextSelf();
     void cleanField();
     void checkTime();
+    bool maxLength();
 };
+
+}  // namespace s21
 
 #endif

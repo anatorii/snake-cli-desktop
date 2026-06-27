@@ -5,6 +5,8 @@
 #include <map>
 #include <memory>
 
+namespace s21 {
+
 class EventData;
 
 enum { Event_Ignore = 0xFE, Cannot_Happen = 0xFF };
@@ -23,7 +25,7 @@ struct State {
 
 class EventData {
    public:
-    virtual ~EventData(){};
+    virtual ~EventData() {};
 };
 
 using NoEventData = EventData;
@@ -50,5 +52,7 @@ class StateMachine {
     void setCurrentState(short newState) { currentState = newState; };
     void handleEvent();
 };
+
+}  // namespace s21
 
 #endif

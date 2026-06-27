@@ -4,29 +4,27 @@
 #include "game_view.h"
 
 class GameController {
-private:
+   private:
     GameModel model;
-    GameView* view;
+    GameView *view;
     guint timeout_id;
     GtkApplication *app;
-    
-    // Обработчики событий
+
+    // Event handlers
     static gboolean onTimeout(gpointer user_data);
-    static gboolean onKeyPressed(GtkEventControllerKey *controller, 
-                                guint keyval, guint keycode, 
-                                GdkModifierType state, 
-                                gpointer user_data);
-    
+    static gboolean onKeyPressed(GtkEventControllerKey *controller, guint keyval, guint keycode,
+                                 GdkModifierType state, gpointer user_data);
+
     void updateView();
     void handleInput();
-    
-public:
+
+   public:
     GameController(GtkApplication *app);
     ~GameController();
-    
+
     void run();
     void stop();
-    
-    // Методы для взаимодействия с GTK
+
+    // Methods for interacting with GTK
     static void activate(GtkApplication *app, gpointer user_data);
 };

@@ -1,8 +1,10 @@
 #include <gtest/gtest.h>
-#include <string>
 #include <ncurses.h>
-#include "test_snake.hpp"
+
+#include <string>
+
 #include "../gui/cli/utils.h"
+#include "test_snake.hpp"
 
 using namespace std;
 

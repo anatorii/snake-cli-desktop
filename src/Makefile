@@ -1,7 +1,7 @@
 CC = gcc
 CCP = g++
 CFLAGS = -std=c11 -fPIC
-CPPFLAGS = -std=c++17 -fPIC
+CPPFLAGS = -std=c++20 -fPIC
 # CFLAGS = -std=c11 -Werror -Wall -Wextra -fPIC
 # CPPFLAGS = -std=c++17 -Werror -Wall -Wextra -fPIC
 
@@ -10,6 +10,11 @@ OBJDIR = ../obj
 BINDIR = ../bin
 DISTDIR = ../dist
 DOCDIR = ../docs
+REPORTDIR = ../report
+INSTALLDIR = ../usr
+DISTNAME = brick_game_snake
+TAR = tar
+TARFLAGS = -czf
 
 LDFLAGS = -lncurses -lm
 TEST_LIBS = -lcheck -lm -lpthread -lsubunit
@@ -18,7 +23,6 @@ SNAKE_TEST_LIBS = -lgtest -lpthread
 SANITIZE = -fsanitize=address
 GCOV_FLAGS = -fprofile-arcs -ftest-coverage -O0 -std=c++20 -fPIC
 GTKFLAGS = `pkg-config --cflags --libs gtk4`
-
 
 # Имена библиотек и исполняемых файлов
 TETRIS_LIB = libtetris.so
@@ -49,15 +53,15 @@ GUI_HEAD = $(wildcard $(SRCDIR)/gui/cli/*.h)
 DESKTOP_HEAD = $(wildcard $(SRCDIR)/gui/desktop/*.h)
 
 # Основные цели
-all: directories $(TETRIS_BIN) $(SNAKE_BIN)
+all: directories $(TETRIS_BIN) $(SNAKE_BIN) $(TETRIS_DESKTOP) $(SNAKE_DESKTOP)
 
 # Создание необходимых директорий
 directories:
-	@mkdir -p $(BINDIR) $(OBJDIR)/brick_game/tetris $(OBJDIR)/brick_game/snake $(OBJDIR)/gui/cli $(OBJDIR)/gui/desktop $(OBJDIR)/tests_snake
+	@mkdir -p $(REPORTDIR) $(BINDIR) $(OBJDIR)/brick_game/tetris $(OBJDIR)/brick_game/snake $(OBJDIR)/gui/cli $(OBJDIR)/gui/desktop $(OBJDIR)/tests_snake
 
 # Очистка
 clean:
-	rm -rf $(OBJDIR) $(BINDIR) $(DISTDIR) $(DOCDIR)
+	rm -rf $(REPORTDIR) $(OBJDIR) $(BINDIR) $(DISTDIR) $(DOCDIR) $(INSTALLDIR)
 
 # Форматирование кода
 cf:
@@ -123,13 +127,13 @@ test: $(SNAKE_LIB)
 	$(CCP) $(CPPFLAGS) $(TEST_SRC) gui/cli/utils.c -o $(BINDIR)/snake_test $(SNAKE_TEST_LIBS) $(SNAKE_LDFLAGS) -L$(BINDIR) -l:$(SNAKE_LIB) -Wl,-rpath,'$$ORIGIN'
 	$(BINDIR)/snake_test
 
-gcov_report:
-	$(CCP) $(GCOV_FLAGS) $(TEST_SRC) $(SNAKE_SRC) gui/cli/utils.c -o $(BINDIR)/gcov_report $(SNAKE_TEST_LIBS) $(SNAKE_LDFLAGS)
-	$(BINDIR)/gcov_report
-	lcov --ignore-errors mismatch,unsupported,inconsistent,format,empty --rc geninfo_unexecuted_blocks=1 -c -d $(BINDIR) -o $(BINDIR)/coverage.info
-	lcov -r $(BINDIR)/coverage.info 'gui' '/usr*' '**/tests_snake/*' -o $(BINDIR)/coverage.info
-	genhtml --ignore-errors category -o $(BINDIR)/report $(BINDIR)/coverage.info
-	xdg-open $(BINDIR)/report/index.html
+gcov_report: directories
+	$(CCP) $(GCOV_FLAGS) $(TEST_SRC) $(SNAKE_SRC) gui/cli/utils.c -o $(REPORTDIR)/gcov_report $(SNAKE_TEST_LIBS) $(SNAKE_LDFLAGS)
+	$(REPORTDIR)/gcov_report
+	lcov --ignore-errors mismatch,unsupported,inconsistent,format,empty --rc geninfo_unexecuted_blocks=1 -c -d $(REPORTDIR) -o $(REPORTDIR)/coverage.info
+	lcov -r $(REPORTDIR)/coverage.info 'gui' '/usr*' '**/tests_snake/*' -o $(REPORTDIR)/coverage.info
+	genhtml --ignore-errors category -o $(REPORTDIR)/report $(REPORTDIR)/coverage.info
+	xdg-open $(REPORTDIR)/report/index.html
 
 # =============== ЗАПУСК ===============
 
@@ -160,5 +164,53 @@ targets:
 	@echo "SNAKE_OBJ = $(SNAKE_OBJ)"
 	@echo "GUI_SRC = $(GUI_SRC)"
 	@echo "GUI_OBJ = $(GUI_OBJ)"
+
+# =============== Проверка памяти ===============
+
+valgrind: clean $(SNAKE_DESKTOP)
+	valgrind -q --leak-check=yes --tool=memcheck --show-possibly-lost=no $(BINDIR)/$(SNAKE_DESKTOP)
+
+valgrind-test: clean test
+	valgrind -q --leak-check=yes --tool=memcheck --show-possibly-lost=no $(BINDIR)/snake_test
+
+# Установка программы
+install: $(SNAKE_BIN) $(SNAKE_DESKTOP)
+	install -d $(INSTALLDIR)
+	install -m 755 $(BINDIR)/* $(INSTALLDIR)/
+	@echo "Программа установлена в $(INSTALLDIR)"
+
+# Удаление установленной программы
+uninstall:
+	rm -fr $(INSTALLDIR)
+	@echo "Программа удалена из $(INSTALLDIR)"
+
+# Создание дистрибутива
+dist:
+	mkdir -p $(DISTDIR)/$(DISTNAME)/src/gui/cli
+	mkdir -p $(DISTDIR)/$(DISTNAME)/src/gui/desktop
+	mkdir -p $(DISTDIR)/$(DISTNAME)/src/brick_game/tetris
+	mkdir -p $(DISTDIR)/$(DISTNAME)/src/brick_game/snake
+	cp -r $(SRCDIR)/gui/cli $(DISTDIR)/$(DISTNAME)/src/gui/
+	cp -r $(SRCDIR)/gui/desktop $(DISTDIR)/$(DISTNAME)/src/gui/
+	cp -r $(SRCDIR)/brick_game/tetris $(DISTDIR)/$(DISTNAME)/src/brick_game/
+	cp -r $(SRCDIR)/brick_game/snake $(DISTDIR)/$(DISTNAME)/src/brick_game/
+	cp -r $(SRCDIR)/Makefile $(DISTDIR)/$(DISTNAME)/src
+	cp -r $(SRCDIR)/Doxyfile $(DISTDIR)/$(DISTNAME)/src
+	$(TAR) $(TARFLAGS) $(DISTDIR)/$(DISTNAME).tar.gz $(DISTDIR)/$(DISTNAME)
+
+# Цель для генерации DVI документации через Doxygen
+dvi: $(DOXYFILE)
+	doxygen $(DOXYFILE)
+	@if [ -d "$(DOCDIR)/latex" ]; then \
+		cd $(DOCDIR)/latex && make && cd -; \
+		echo "DVI документация сгенерирована в $(DOCDIR)/latex/refman.dvi"; \
+	else \
+		echo "Ошибка: LaTeX директория не найдена"; \
+	fi
+
+# Создание Doxyfile, если его нет
+$(DOXYFILE):
+	doxygen -g $(DOXYFILE)
+	@echo "Создан шаблонный $(DOXYFILE), пожалуйста, настройте его"
 
 .PHONY: all clean cf directories docs dist run-tetris run-snake debug test gui

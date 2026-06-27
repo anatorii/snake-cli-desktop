@@ -1,13 +1,15 @@
 #pragma once
 
 #include <gtk/gtk.h>
+
 #include <string>
+
 #include "brick_game.h"
 #include "defines.h"
 
 class GameView {
-private:
-    // GTK виджеты
+   private:
+    // GTK widgets
     GtkApplication *app;
     GtkWidget *window;
     GtkWidget *level_value;
@@ -17,35 +19,37 @@ private:
     GtkWidget *status_label;
     GtkWidget **cells;
     GtkWidget **nextFigure;
-    
-    // Константы
+    bool widgets_valid;
+
+    // Constants
     static constexpr int GRID_ROWS = HEIGHT;
     static constexpr int GRID_COLS = WIDTH;
     static constexpr int CELL_SIZE = 40;
-    
-    // Вспомогательные методы
+
+    // Auxiliary methods
     std::string intToColor(int icolor) const;
-    GdkRGBA* getCellColor(GtkWidget *cell) const;
-    void drawField(int** field, const GameInfo_t& info);
+    GdkRGBA *getCellColor(GtkWidget *cell) const;
     static void onDrawCell(GtkDrawingArea *area, cairo_t *cr, int width, int height, gpointer user_data);
-    GtkWidget* createCell(int row, int col);
+    GtkWidget *createCell(int row, int col);
     void setupUI();
-    
-public:
+
+   public:
     GameView(GtkApplication *app);
     ~GameView();
-    
-    // Основные методы отображения
-    void render(int** field, const GameInfo_t& info);
+    void invalidateWidgets();
+    static void onWindowDestroy(GtkWidget *widget, gpointer user_data);
+
+    // Basic display methods
+    void render(int **field, const GameInfo_t &info);
     void show();
     void hide();
-    
-    // Установка обработчиков
-    void setKeyHandler(void* controller);
-    
-    // Геттеры для виджетов
-    GtkWidget* getWindow() const { return window; }
-    
-    // Статический метод для создания view
-    static GameView* create(GtkApplication *app);
+
+    // Installing handlers
+    // void setKeyHandler(void* controller);
+
+    // Getters for widgets
+    GtkWidget *getWindow() const { return window; }
+
+    // Static method for creating view
+    static GameView *create(GtkApplication *app);
 };

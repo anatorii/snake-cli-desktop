@@ -53,12 +53,6 @@ void GameView::render(int** field, const GameInfo_t& info) {
         return;
     }
 
-    auto setLabelText = [](GtkWidget* widget, const std::string& text) {
-        if (widget && GTK_IS_LABEL(widget)) {
-            gtk_label_set_text(GTK_LABEL(widget), text.c_str());
-        }
-    };
-
     // Обновляем текстовые метки
     if (level_value && GTK_IS_LABEL(level_value)) {
         gtk_label_set_text(GTK_LABEL(level_value), std::to_string(info.level).c_str());
@@ -279,6 +273,7 @@ void GameView::setupUI() {
 }
 
 void GameView::onWindowDestroy(GtkWidget* widget, gpointer user_data) {
+    (void)widget;
     GameView* view = static_cast<GameView*>(user_data);
     view->invalidateWidgets();
 }
@@ -294,6 +289,7 @@ void GameView::invalidateWidgets() {
 }
 
 void GameView::onDrawCell(GtkDrawingArea* area, cairo_t* cr, int width, int height, gpointer user_data) {
+    (void)user_data;
     GdkRGBA* color = (GdkRGBA*)g_object_get_data(G_OBJECT(area), "color");
 
     // Заливаем клетку цветом

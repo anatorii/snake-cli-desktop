@@ -1,9 +1,7 @@
 CC = gcc
-CCP = g++
-CFLAGS = -std=c11 -fPIC
-CPPFLAGS = -std=c++20 -fPIC
-# CFLAGS = -std=c11 -Werror -Wall -Wextra -fPIC
-# CPPFLAGS = -std=c++17 -Werror -Wall -Wextra -fPIC
+CXX = g++
+CFLAGS = -std=c11 -Werror -Wall -Wextra -fPIC
+CPPFLAGS = -std=c++20 -Werror -Wall -Wextra -fPIC
 
 SRCDIR = ../src
 OBJDIR = ../obj
@@ -75,7 +73,7 @@ $(TETRIS_LIB): $(TETRIS_OBJ) | directories
 
 # Библиотека Snake (C++)
 $(SNAKE_LIB): $(SNAKE_OBJ) | directories
-	$(CCP) -shared -o $(BINDIR)/$@ $^ $(LDFLAGS)
+	$(CXX) -shared -o $(BINDIR)/$@ $^ $(LDFLAGS)
 
 # =============== ОБЪЕКТНЫЕ ФАЙЛЫ ===============
 
@@ -85,7 +83,7 @@ $(OBJDIR)/brick_game/tetris/%.o: $(SRCDIR)/brick_game/tetris/%.c $(TETRIS_HEAD) 
 
 # Объектные файлы Snake
 $(OBJDIR)/brick_game/snake/%.o: $(SRCDIR)/brick_game/snake/%.cpp $(SNAKE_HEAD) | directories
-	$(CCP) $(CPPFLAGS) -c $< -o $@
+	$(CXX) $(CPPFLAGS) -c $< -o $@
 
 # Объектные файлы GUI (общие)
 $(OBJDIR)/gui/cli/%.o: $(SRCDIR)/gui/cli/%.c $(GUI_HEAD) | directories
@@ -93,11 +91,11 @@ $(OBJDIR)/gui/cli/%.o: $(SRCDIR)/gui/cli/%.c $(GUI_HEAD) | directories
 
 # Объектные файлы Desktop (общие)
 $(OBJDIR)/gui/desktop/%.o: $(SRCDIR)/gui/desktop/%.cpp $(DESKTOP_HEAD) | directories
-	$(CCP) $(CPPFLAGS) -c $< -o $@ $(GTKFLAGS)
+	$(CXX) $(CPPFLAGS) -c $< -o $@ $(GTKFLAGS)
 
 # Объектные файлы тестов Snake
 $(OBJDIR)/tests_snake/%.o: $(SRCDIR)/tests_snake/%.cpp | directories
-	$(CCP) $(CPPFLAGS) -c $< -o $@
+	$(CXX) $(CPPFLAGS) -c $< -o $@
 
 # =============== ИСПОЛНЯЕМЫЕ ФАЙЛЫ ===============
 
@@ -111,24 +109,26 @@ $(SNAKE_BIN): $(GUI_OBJ) $(SNAKE_LIB)
 
 # Исполняемый файл Tetris desktop
 $(TETRIS_DESKTOP): $(DESKTOP_OBJ) $(TETRIS_LIB)
-	$(CCP) $(CPPFLAGS) -o $(BINDIR)/$@ $(DESKTOP_OBJ) -L$(BINDIR) -l:$(TETRIS_LIB) $(GTKFLAGS)-lm -Wl,-rpath,'$$ORIGIN'
+	$(CXX) $(CPPFLAGS) -o $(BINDIR)/$@ $(DESKTOP_OBJ) -L$(BINDIR) -l:$(TETRIS_LIB) $(GTKFLAGS)-lm -Wl,-rpath,'$$ORIGIN'
 
 # Исполняемый файл Snake desktop
 $(SNAKE_DESKTOP): $(DESKTOP_OBJ) $(SNAKE_LIB)
-	$(CCP) $(CPPFLAGS) -o $(BINDIR)/$@ $(DESKTOP_OBJ) -L$(BINDIR) -l:$(SNAKE_LIB) $(GTKFLAGS)-lm -Wl,-rpath,'$$ORIGIN'
+	$(CXX) $(CPPFLAGS) -o $(BINDIR)/$@ $(DESKTOP_OBJ) -L$(BINDIR) -l:$(SNAKE_LIB) $(GTKFLAGS)-lm -Wl,-rpath,'$$ORIGIN'
 
 gui:
-	$(CCP) $(CPPFLAGS) ./gui/desktop/desktop.cpp -o ./gui/desktop/desktop.app $(GTKFLAGS) -lm
+	$(CXX) $(CPPFLAGS) ./gui/desktop/desktop.cpp -o ./gui/desktop/desktop.app $(GTKFLAGS) -lm
 	./gui/desktop/desktop.app
 
-# =============== ТЕСТЫ ===============
+# =============== Тесты ===============
 
 test: $(SNAKE_LIB)
-	$(CCP) $(CPPFLAGS) $(TEST_SRC) gui/cli/utils.c -o $(BINDIR)/snake_test $(SNAKE_TEST_LIBS) $(SNAKE_LDFLAGS) -L$(BINDIR) -l:$(SNAKE_LIB) -Wl,-rpath,'$$ORIGIN'
+	$(CXX) $(CPPFLAGS) $(TEST_SRC) gui/cli/utils.c -o $(BINDIR)/snake_test $(SNAKE_TEST_LIBS) $(SNAKE_LDFLAGS) -L$(BINDIR) -l:$(SNAKE_LIB) -Wl,-rpath,'$$ORIGIN'
 	$(BINDIR)/snake_test
 
+# =============== Покрытие кода библиотеки ===============
+
 gcov_report: directories
-	$(CCP) $(GCOV_FLAGS) $(TEST_SRC) $(SNAKE_SRC) gui/cli/utils.c -o $(REPORTDIR)/gcov_report $(SNAKE_TEST_LIBS) $(SNAKE_LDFLAGS)
+	$(CXX) $(GCOV_FLAGS) $(TEST_SRC) $(SNAKE_SRC) gui/cli/utils.c -o $(REPORTDIR)/gcov_report $(SNAKE_TEST_LIBS) $(SNAKE_LDFLAGS)
 	$(REPORTDIR)/gcov_report
 	lcov --ignore-errors mismatch,unsupported,inconsistent,format,empty --rc geninfo_unexecuted_blocks=1 -c -d $(REPORTDIR) -o $(REPORTDIR)/coverage.info
 	lcov -r $(REPORTDIR)/coverage.info 'gui' '/usr*' '**/tests_snake/*' -o $(REPORTDIR)/coverage.info
@@ -140,13 +140,13 @@ gcov_report: directories
 run-tetris: $(TETRIS_BIN)
 	cd $(BINDIR) && ./$(TETRIS_BIN)
 
-run-snake: clean $(SNAKE_BIN)
+run-snake:  $(SNAKE_BIN)
 	cd $(BINDIR) && ./$(SNAKE_BIN)
 
-run-tetris-desktop: clean $(TETRIS_DESKTOP)
+run-tetris-desktop:  $(TETRIS_DESKTOP)
 	cd $(BINDIR) && ./$(TETRIS_DESKTOP)
 
-run-snake-desktop: clean $(SNAKE_DESKTOP)
+run-snake-desktop:  $(SNAKE_DESKTOP)
 	cd $(BINDIR) && ./$(SNAKE_DESKTOP)
 
 # =============== ДЕБАГ ===============
@@ -173,6 +173,8 @@ valgrind: clean $(SNAKE_DESKTOP)
 valgrind-test: clean test
 	valgrind -q --leak-check=yes --tool=memcheck --show-possibly-lost=no $(BINDIR)/snake_test
 
+# =============== Установка и дистрибутив ===============
+
 # Установка программы
 install: $(SNAKE_BIN) $(SNAKE_DESKTOP)
 	install -d $(INSTALLDIR)
@@ -197,6 +199,8 @@ dist:
 	cp -r $(SRCDIR)/Makefile $(DISTDIR)/$(DISTNAME)/src
 	cp -r $(SRCDIR)/Doxyfile $(DISTDIR)/$(DISTNAME)/src
 	$(TAR) $(TARFLAGS) $(DISTDIR)/$(DISTNAME).tar.gz $(DISTDIR)/$(DISTNAME)
+
+# =============== Документация ===============
 
 # Цель для генерации DVI документации через Doxygen
 dvi: $(DOXYFILE)

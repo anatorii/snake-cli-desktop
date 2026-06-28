@@ -6,11 +6,13 @@
 #include <random>
 #include <set>
 
+using namespace s21;
+
 // ////////////////////////////////////////////////////
 // конструктор SnakeGameFsm
 // ////////////////////////////////////////////////////
 
-s21::SnakeGameFsm::SnakeGameFsm(Game* g) : game(g) {
+SnakeGameFsm::SnakeGameFsm(Game* g) : game(g) {
     initStateMap();
     currentState = State_Start;
 }
@@ -19,25 +21,32 @@ s21::SnakeGameFsm::SnakeGameFsm(Game* g) : game(g) {
 // определение событий
 // ////////////////////////////////////////////////////
 
-void s21::SnakeGameFsm::timer() { externalEvent(transitions[Event_Timer][getCurrentState()], nullptr); }
+void SnakeGameFsm::timer() { externalEvent(transitions[Event_Timer][getCurrentState()], nullptr); }
 
-void s21::SnakeGameFsm::start() { externalEvent(transitions[Event_Start][getCurrentState()], nullptr); }
+void SnakeGameFsm::start() { externalEvent(transitions[Event_Start][getCurrentState()], nullptr); }
 
-void s21::SnakeGameFsm::rotate(RotateData* data) {
+void SnakeGameFsm::rotate(RotateData* data) {
     externalEvent(transitions[Event_Rotate][getCurrentState()], data);
 }
 
-void s21::SnakeGameFsm::speedUp() { externalEvent(transitions[Event_SpeedUp][getCurrentState()], nullptr); }
+void SnakeGameFsm::speedUp() { externalEvent(transitions[Event_SpeedUp][getCurrentState()], nullptr); }
 
 // ////////////////////////////////////////////////////
 // определение функций состояния
 // ////////////////////////////////////////////////////
 
-void s21::SnakeGameFsm::StartAction(SnakeEventData* data) { game->initGame(); }
+void SnakeGameFsm::StartAction(SnakeEventData* data) {
+    (void)data;
+    game->initGame();
+}
 
-void s21::SnakeGameFsm::FinishAction(SnakeEventData* data) { game->finishGame(); }
+void SnakeGameFsm::FinishAction(SnakeEventData* data) {
+    (void)data;
+    game->finishGame();
+}
 
-void s21::SnakeGameFsm::MoveAction(SnakeEventData* data) {
+void SnakeGameFsm::MoveAction(SnakeEventData* data) {
+    (void)data;
     if (game->nextSelf()) {
         internalEvent(State_Self);
     } else if (game->nextWall()) {
@@ -50,21 +59,30 @@ void s21::SnakeGameFsm::MoveAction(SnakeEventData* data) {
     }
 }
 
-void s21::SnakeGameFsm::WinAction(SnakeEventData* data) {
+void SnakeGameFsm::WinAction(SnakeEventData* data) {
+    (void)data;
     game->setSpeed(-1);
     internalEvent(State_Finish);
 }
 
-void s21::SnakeGameFsm::FailAction(SnakeEventData* data) {
+void SnakeGameFsm::FailAction(SnakeEventData* data) {
+    (void)data;
     game->setSpeed(0);
     internalEvent(State_Finish);
 }
 
-void s21::SnakeGameFsm::RotateAction(RotateData* data) { game->rotateSnake(data->direction); }
+void SnakeGameFsm::RotateAction(RotateData* data) {
+    (void)data;
+    game->rotateSnake(data->direction);
+}
 
-void s21::SnakeGameFsm::ActionAction(SnakeEventData* data) { game->speedUpSnake(); }
+void SnakeGameFsm::ActionAction(SnakeEventData* data) {
+    (void)data;
+    game->speedUpSnake();
+}
 
-void s21::SnakeGameFsm::AppleAction(SnakeEventData* data) {
+void SnakeGameFsm::AppleAction(SnakeEventData* data) {
+    (void)data;
     game->countScore();
     game->addTail();
     if (!game->maxLength()) {
@@ -74,15 +92,21 @@ void s21::SnakeGameFsm::AppleAction(SnakeEventData* data) {
     }
 }
 
-void s21::SnakeGameFsm::WallAction(SnakeEventData* data) { internalEvent(State_Fail); }
+void SnakeGameFsm::WallAction(SnakeEventData* data) {
+    (void)data;
+    internalEvent(State_Fail);
+}
 
-void s21::SnakeGameFsm::SelfAction(SnakeEventData* data) { internalEvent(State_Fail); }
+void SnakeGameFsm::SelfAction(SnakeEventData* data) {
+    (void)data;
+    internalEvent(State_Fail);
+}
 
 // ////////////////////////////////////////////////////
 // инициализация состояний
 // ////////////////////////////////////////////////////
 
-void s21::SnakeGameFsm::initStateMap() {
+void SnakeGameFsm::initStateMap() {
     stateMap[State_Start] = createState([this](EventData* e) { this->StartAction((SnakeEventData*)e); },
                                         nullptr, nullptr, nullptr);
     stateMap[State_Finish] = createState([this](EventData* e) { this->FinishAction((SnakeEventData*)e); },

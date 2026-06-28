@@ -9,8 +9,8 @@
 using namespace std;
 
 void run_fsm(int reps = 50) {
-    for (size_t i = 0; i < reps; i++) {
-        GameInfo_t game_info = updateCurrentState();
+    for (int i = 0; i < reps; i++) {
+        updateCurrentState();
     }
 }
 
@@ -72,4 +72,12 @@ TEST(snake_tests, wall_collision_test) {
     act = input_to_action('\n');
     userInput((UserAction_t)act, 0);
     run_fsm(2000);
+}
+
+TEST(snake_tests, store_score_to_file_test) {
+    int act = -1;
+
+    act = input_to_action('\n');
+    userInput((UserAction_t)act, 0);
+    run_fsm(100);
 }

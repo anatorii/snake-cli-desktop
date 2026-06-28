@@ -6,6 +6,7 @@
 #include <memory>
 #include <queue>
 
+#include "app_path.hpp"
 #include "defines.hpp"
 #include "lib.hpp"
 #include "snake_game_fsm.hpp"
@@ -52,6 +53,7 @@ class Game {
     Cell apple;
     std::unique_ptr<SnakeGameFsm> fsm;
     int ticks = 0;
+    AppPath app_path;
 
    public:
     void initGame();
@@ -67,6 +69,8 @@ class Game {
     void cleanField();
     void checkTime();
     bool maxLength();
+    bool storeScore(int score);
+    void loadScore();
 };
 
 }  // namespace s21

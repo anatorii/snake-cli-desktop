@@ -30,6 +30,9 @@ gboolean GameController::onTimeout(gpointer user_data) {
 
 gboolean GameController::onKeyPressed(GtkEventControllerKey* controller, guint keyval, guint keycode,
                                       GdkModifierType state, gpointer user_data) {
+    (void)controller;
+    (void)keycode;
+    (void)state;
     GameController* gameController = static_cast<GameController*>(user_data);
     gameController->model.setKey(keyval);
     return TRUE;
@@ -64,6 +67,7 @@ void GameController::stop() {
 }
 
 void GameController::activate(GtkApplication* app, gpointer user_data) {
+    (void)user_data;
     GameController* controller = new GameController(app);
     controller->run();
 

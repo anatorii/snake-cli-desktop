@@ -5,10 +5,10 @@
 
 class GameController {
    private:
-    GameModel model;
-    GameView *view;
-    guint timeout_id;
     GtkApplication *app;
+    GameView *view;
+    GameModel model;
+    guint timeout_id;
 
     // Event handlers
     static gboolean onTimeout(gpointer user_data);

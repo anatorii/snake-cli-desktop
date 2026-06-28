@@ -6,10 +6,13 @@
 #include <random>
 #include <set>
 
+#include "app_path.hpp"
 #include "defines.hpp"
 #include "state_machine.hpp"
 
-s21::Game::Game() : fsm(std::make_unique<s21::SnakeGameFsm>(this)) {
+using namespace s21;
+
+Game::Game() : fsm(std::make_unique<SnakeGameFsm>(this)) {
     initGame();
 
     int** field = new int*[HEIGHT];
@@ -22,7 +25,7 @@ s21::Game::Game() : fsm(std::make_unique<s21::SnakeGameFsm>(this)) {
     this->field = field;
 }
 
-s21::Game::~Game() {
+Game::~Game() {
     if (field) {
         for (int i = 0; i < HEIGHT; i++) {
             delete[] field[i];
@@ -31,12 +34,12 @@ s21::Game::~Game() {
     }
 }
 
-s21::Game* s21::Game::getInstance() {
-    static s21::Game instance;
+Game* Game::getInstance() {
+    static Game instance;
     return &instance;
 }
 
-GameInfo_t s21::Game::update() {
+GameInfo_t Game::update() {
     if (pause == 0) {
         checkTime();
     }
@@ -60,18 +63,18 @@ GameInfo_t s21::Game::update() {
     return info;
 }
 
-void s21::Game::start() { fsm->start(); }
+void Game::start() { fsm->start(); }
 
-void s21::Game::rotate(int dir) {
-    s21::RotateData* pData = new s21::RotateData(dir);
+void Game::rotate(int dir) {
+    RotateData* pData = new RotateData(dir);
     fsm->rotate(pData);
 }
 
-void s21::Game::speedUp() { fsm->speedUp(); }
+void Game::speedUp() { fsm->speedUp(); }
 
-void s21::Game::setSpeed(int speed) { snakeSpeed = speed; }
+void Game::setSpeed(int speed) { snakeSpeed = speed; }
 
-void s21::Game::updatePause() {
+void Game::updatePause() {
     if (this->pause != 0) {
         this->pause = 0;
     } else {
@@ -79,7 +82,7 @@ void s21::Game::updatePause() {
     }
 }
 
-void s21::Game::checkTime() {
+void Game::checkTime() {
     // 100ms - 10 speed
     // 1000ms - 1 speed
     ticks++;
@@ -90,21 +93,22 @@ void s21::Game::checkTime() {
     }
 }
 
-bool s21::Game::maxLength() { return snake.size() == MAX_LENGTH; }
+bool Game::maxLength() { return snake.size() == MAX_LENGTH; }
 
-void s21::Game::initGame() {
+void Game::initGame() {
     ticks = 0;
-    snake.push_back(s21::Cell{5, 15});
-    snake.push_back(s21::Cell{5, 16});
-    snake.push_back(s21::Cell{5, 17});
-    snake.push_back(s21::Cell{5, 18});
+    snake.push_back(Cell{5, 15});
+    snake.push_back(Cell{5, 16});
+    snake.push_back(Cell{5, 17});
+    snake.push_back(Cell{5, 18});
     putApple(5, 14);
+    loadScore();
 }
 
-void s21::Game::finishGame() {}
+void Game::finishGame() {}
 
-void s21::Game::moveSnake() {
-    s21::Cell head;
+void Game::moveSnake() {
+    Cell head;
 
     for (size_t i = 0; i < snake.size(); i++) {
         if (i == 0) {
@@ -119,14 +123,14 @@ void s21::Game::moveSnake() {
                 snake[0].x++;
             }
         } else {
-            s21::Cell tmp = snake[i];
+            Cell tmp = snake[i];
             snake[i] = head;
             head = tmp;
         }
     }
 }
 
-void s21::Game::rotateSnake(int dir) {
+void Game::rotateSnake(int dir) {
     int rotation = 0;
     if (direction == Up_Direction) {
         if (dir == Left_Direction)
@@ -154,27 +158,27 @@ void s21::Game::rotateSnake(int dir) {
     if (direction > 3) direction = 0;
 }
 
-void s21::Game::speedUpSnake() {
+void Game::speedUpSnake() {
     if (snakeSpeed < 10) snakeSpeed++;
 }
 
-void s21::Game::addTail() {
+void Game::addTail() {
     int i = snake.size() - 1;
     int dx = snake[i].x - snake[i - 1].x;
     int dy = snake[i].y - snake[i - 1].y;
-    snake.push_back(s21::Cell{snake[i].x + dx, snake[i].y + dy});
+    snake.push_back(Cell{snake[i].x + dx, snake[i].y + dy});
 }
 
-void s21::Game::putApple(int x, int y) {
+void Game::putApple(int x, int y) {
     if (x != -1 && y != -1) {
-        apple = s21::Cell{x, y};
+        apple = Cell{x, y};
         return;
     }
 
-    std::set<s21::Cell> field;
+    std::set<Cell> field;
     for (int y = 0; y < 20; y++) {
         for (int x = 0; x < 10; x++) {
-            field.insert(s21::Cell{x, y});
+            field.insert(Cell{x, y});
         }
     }
 
@@ -182,7 +186,7 @@ void s21::Game::putApple(int x, int y) {
         field.erase(snake[i]);
     }
 
-    std::vector<s21::Cell> cells(field.begin(), field.end());
+    std::vector<Cell> cells(field.begin(), field.end());
 
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::mt19937 gen(seed);
@@ -190,13 +194,13 @@ void s21::Game::putApple(int x, int y) {
     apple = cells[dist(gen)];
 }
 
-bool s21::Game::checkApple() {
-    s21::Cell head = snake[0];
+bool Game::checkApple() {
+    Cell head = snake[0];
     return head.x == apple.x && head.y == apple.y;
 }
 
-bool s21::Game::nextWall() {
-    s21::Cell head = snake[0];
+bool Game::nextWall() {
+    Cell head = snake[0];
     if (direction == Up_Direction) {
         head.y--;
     } else if (direction == Down_Direction) {
@@ -209,8 +213,8 @@ bool s21::Game::nextWall() {
     return head.x < 0 || head.x >= 10 || head.y < 0 || head.y >= 20;
 }
 
-bool s21::Game::nextSelf() {
-    s21::Cell head = snake[0];
+bool Game::nextSelf() {
+    Cell head = snake[0];
     if (direction == Up_Direction) {
         head.y--;
     } else if (direction == Down_Direction) {
@@ -228,7 +232,7 @@ bool s21::Game::nextSelf() {
     return false;
 }
 
-void s21::Game::cleanField() {
+void Game::cleanField() {
     for (int i = 0; i < HEIGHT; i++) {
         for (int j = 0; j < WIDTH; j++) {
             field[i][j] = 0;
@@ -236,7 +240,7 @@ void s21::Game::cleanField() {
     }
 }
 
-void s21::Game::countScore() {
+void Game::countScore() {
     score++;
 
     int calcLevel = score / LEVEL_SCORE + 1;
@@ -249,6 +253,42 @@ void s21::Game::countScore() {
 
     if (high_score < score) {
         high_score = score;
-        // storeScore(high_score);
+        storeScore(high_score);
+    }
+}
+
+void Game::loadScore() {
+    std::string filename = SCORE_FILE;
+
+    std::string content;
+    if (app_path.loadFile(filename, content)) {
+        std::cout << "Score loaded: " << content << std::endl;
+        try {
+            high_score = std::stoi(content);
+        } catch (const std::invalid_argument& e) {
+            std::cerr << "Invalid argument: " << e.what() << std::endl;
+        } catch (const std::out_of_range& e) {
+            std::cerr << "Out of range: " << e.what() << std::endl;
+        }
+    } else {
+        std::cerr << "Failed to load Score from: " << app_path.getResourcePath(filename) << std::endl;
+    }
+}
+
+bool Game::storeScore(int score) {
+    std::string filename = SCORE_FILE;
+
+    try {
+        std::ofstream file(filename);
+        if (!file.is_open()) {
+            std::cerr << "Failed to open score file: " << filename << std::endl;
+            return false;
+        }
+        file << score;
+        file.close();
+        return true;
+    } catch (const std::exception& e) {
+        std::cerr << "Error writing score: " << e.what() << std::endl;
+        return false;
     }
 }

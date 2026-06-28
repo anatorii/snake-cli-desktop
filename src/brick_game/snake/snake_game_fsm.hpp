@@ -14,13 +14,13 @@ class Game;
 
 class SnakeEventData : public EventData {
    public:
-    SnakeEventData(int k) : key(k) {};
+    SnakeEventData(int k) : key(k){};
     int key;
 };
 
 class RotateData : public EventData {
    public:
-    RotateData(int d) : direction(d) {};
+    RotateData(int d) : direction(d){};
     int direction;
 };
 
@@ -51,18 +51,6 @@ class SnakeGameFsm : public StateMachine {
         State_Self,
         State_Number
     };
-
-    //                 State_Start, State_Finish,State_Move,  State_Win,
-    //                 State_Fail,  State_Rotate,State_Action,State_Apple,
-    //                 State_Wall,  State_Self
-    // Event_Timer     Event_Ignore,Event_Ignore,State_Move,
-    // Event_Ignore,Event_Ignore,Event_Ignore,Event_Ignore,Event_Ignore,Event_Ignore,Event_Ignore
-    // Event_Start     State_Move,
-    // Event_Ignore,Event_Ignore,Event_Ignore,Event_Ignore,Event_Ignore,Event_Ignore,Event_Ignore,Event_Ignore,Event_Ignore
-    // Event_Rotate
-    // Event_Ignore,Event_Ignore,State_Rotate,Event_Ignore,Event_Ignore,Event_Ignore,Event_Ignore,Event_Ignore,Event_Ignore,Event_Ignore
-    // Event_SpeedUp
-    // Event_Ignore,Event_Ignore,State_Action,Event_Ignore,Event_Ignore,Event_Ignore,Event_Ignore,Event_Ignore,Event_Ignore,Event_Ignore
 
     static constexpr std::array<std::array<short, State_Number>, Event_Number> transitions = {
         {{{Event_Ignore, Event_Ignore, State_Move, Event_Ignore, Event_Ignore, State_Move, State_Move,

@@ -25,7 +25,7 @@ struct State {
 
 class EventData {
    public:
-    virtual ~EventData() {};
+    virtual ~EventData(){};
 };
 
 using NoEventData = EventData;

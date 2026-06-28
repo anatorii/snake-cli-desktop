@@ -67,3 +67,4 @@ dkms.conf
 /bin/
 /usr/
 /docs/
+score*
